@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guard Panel | Smart Parking System</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Login Screen -->
+    <div class="login-container" id="loginScreen">
+        <div class="login-card">
+            <div class="login-header">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+                <h1>Guard Login</h1>
+                <p>Security checkpoint access</p>
+            </div>
+
+            <form id="loginForm">
+                <div id="loginAlert"></div>
+
+                <div class="form-group">
+                    <label class="form-label" for="guardId">Guard ID</label>
+                    <input type="text" class="form-input" id="guardId" placeholder="Enter your Guard ID" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="password">Password</label>
+                    <input type="password" class="form-input" id="password" placeholder="Enter password" value="guard123" required>
+                    <small style="color: #94a3b8; font-size: 0.75rem;">Default: guard123</small>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    <span>Login</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Dashboard -->
+    <div class="container hidden" id="dashboard">
+        <!-- Header -->
+        <div class="dashboard-header">
+            <div class="user-info">
+                <div class="user-avatar" style="background: #dcfce7; color: #22c55e;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                    </svg>
+                </div>
+                <div>
+                    <div class="user-name" id="guardName">Security Guard</div>
+                    <div class="user-role">Guard ID: <span id="displayGuardId">-</span></div>
+                </div>
+            </div>
+            <button class="btn btn-outline" onclick="logout()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                <span>Logout</span>
+            </button>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('entry')">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="margin-right: 0.5rem;">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                </svg>
+                Verify Entry
+            </button>
+            <button class="tab" onclick="switchTab('exit')">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="margin-right: 0.5rem;">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                </svg>
+                Process Exit
+            </button>
+            <button class="tab" onclick="switchTab('ocr')">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="margin-right: 0.5rem;">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                Scan Plate
+            </button>
+            <button class="tab" onclick="switchTab('sensor')">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="margin-right: 0.5rem;">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0" />
+                </svg>
+                Sensor Update
+            </button>
+        </div>
+        <div class="card" id="entryTab">
+            <div class="card-header">
+                <h3 class="card-title">Verify Entry</h3>
+            </div>
+
+            <div id="entryAlert"></div>
+
+            <div class="form-group">
+                <label class="form-label">Request ID</label>
+                <input type="number" class="form-input" id="entryRequestId" placeholder="Enter approved request ID">
+            </div>
+
+            <button class="btn btn-primary" onclick="verifyEntry()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Verify & Allocate Slot
+            </button>
+
+            <!-- Entry Result -->
+            <div class="result-box hidden" id="entryResult">
+                <h4 style="margin-bottom: 1rem; color: #22c55e;">Entry Verified</h4>
+                <div class="result-item">
+                    <span class="result-label">Assigned Slot</span>
+                    <span class="result-value" id="assignedSlot">-</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Entry Time</span>
+                    <span class="result-value" id="entryTime">-</span>
+                </div>
+            </div>
+
+            <!-- Approved Requests List -->
+            <div style="margin-top: 2rem;">
+                <h4 style="margin-bottom: 1rem;">Approved Requests (Ready for Entry)</h4>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Visitor</th>
+                                <th>Flat</th>
+                                <th>Vehicle</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="approvedRequestsTable">
+                            <tr>
+                                <td colspan="5" class="empty-state">
+                                    <p>Loading...</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Exit Tab -->
+        <div class="card hidden" id="exitTab">
+            <div class="card-header">
+                <h3 class="card-title">Process Exit</h3>
+            </div>
+
+            <div id="exitAlert"></div>
+
+            <div class="form-group">
+                <label class="form-label">Request ID</label>
+                <input type="number" class="form-input" id="exitRequestId" placeholder="Enter request ID to exit">
+            </div>
+
+            <button class="btn btn-danger" onclick="processExit()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                </svg>
+                Process Exit
+            </button>
+
+            <!-- Exit Result -->
+            <div class="result-box hidden" id="exitResult">
+                <h4 style="margin-bottom: 1rem; color: #22c55e;">Exit Processed</h4>
+                <div class="result-item">
+                    <span class="result-label">Slot Freed</span>
+                    <span class="result-value" id="freedSlot">-</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Duration</span>
+                    <span class="result-value" id="duration">-</span>
+                </div>
+            </div>
+
+            <!-- Active Visitors List -->
+            <div style="margin-top: 2rem;">
+                <h4 style="margin-bottom: 1rem;">Currently Parked (Verified Entries)</h4>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Visitor</th>
+                                <th>Flat</th>
+                                <th>Slot</th>
+                                <th>Entry Time</th>
+                            </tr>
+                        </thead>
+                        <tbody id="activeVisitorsTable">
+                            <tr>
+                                <td colspan="5" class="empty-state">
+                                    <p>Loading...</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- OCR Tab -->
+        <div class="card hidden" id="ocrTab">
+            <div class="card-header">
+                <h3 class="card-title">Scan Number Plate</h3>
+            </div>
+
+            <div id="ocrAlert"></div>
+
+            <label class="file-upload" for="plateImage">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <p>Click to upload or drag and drop</p>
+                <p style="font-size: 0.75rem; margin-top: 0.5rem;">PNG, JPG up to 10MB</p>
+                <input type="file" id="plateImage" accept="image/*">
+            </label>
+
+            <div id="imagePreview" style="margin-top: 1rem; text-align: center; display: none;">
+                <img id="previewImg" style="max-width: 100%; max-height: 200px; border-radius: 8px; border: 1px solid #e2e8f0;">
+            </div>
+
+            <button class="btn btn-primary" style="margin-top: 1rem; width: 100%;" onclick="scanPlate()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                Scan Plate
+            </button>
+
+            <!-- OCR Result -->
+            <div class="result-box hidden" id="ocrResult">
+                <h4 style="margin-bottom: 1rem;">Scan Results</h4>
+                <div class="result-item">
+                    <span class="result-label">Detected Plate</span>
+                    <span class="result-value" id="detectedPlate">-</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Resident Name</span>
+                    <span class="result-value" id="residentName">-</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Flat Number</span>
+                    <span class="result-value" id="residentFlat">-</span>
+                </div>
+            </div>
+
+            <!-- Manual Lookup -->
+            <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid #e2e8f0;">
+                <h4 style="margin-bottom: 1rem;">Manual Lookup</h4>
+                <div class="form-group">
+                    <label class="form-label">Car Number</label>
+                    <input type="text" class="form-input" id="manualCarNumber" placeholder="e.g., DL45AB1234">
+                </div>
+                <button class="btn btn-secondary" onclick="manualLookup()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    Lookup
+                </button>
+
+                <div class="result-box hidden" id="lookupResult">
+                    <h4 style="margin-bottom: 1rem;">Lookup Result</h4>
+                    <div class="result-item">
+                        <span class="result-label">Name</span>
+                        <span class="result-value" id="lookupName">-</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Flat Number</span>
+                        <span class="result-value" id="lookupFlat">-</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Car Number</span>
+                        <span class="result-value" id="lookupCar">-</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Slot</span>
+                        <span class="result-value" id="lookupSlot">-</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Sensor Tab -->
+        <div class="card hidden" id="sensorTab">
+            <div class="card-header">
+                <h3 class="card-title">Sensor Update</h3>
+            </div>
+
+            <div id="sensorAlert"></div>
+
+            <!-- Slot Grid -->
+            <div style="margin-bottom: 1.5rem;">
+                <h4 style="margin-bottom: 0.75rem; font-size: 0.875rem; color: #64748b;">Click a slot to update its sensor status</h4>
+                <div id="slotGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); gap: 8px;">
+                    <p style="color: #94a3b8; font-size: 0.875rem;">Loading slots...</p>
+                </div>
+            </div>
+
+            <!-- Selected slot form -->
+            <div id="sensorForm" style="display: none; padding: 1rem; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 1.5rem;">
+                <p style="font-size: 0.875rem; font-weight: 500; margin-bottom: 0.75rem;">Update slot: <span id="selectedSlotLabel" style="color: #3b82f6;">—</span></p>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <select class="form-input" id="sensorStatus" style="flex: 1;">
+                        <option value="empty">Empty (Free)</option>
+                        <option value="occupied">Occupied</option>
+                    </select>
+                    <button class="btn btn-primary" onclick="updateSensor()">Update</button>
+                    <button class="btn btn-outline" onclick="cancelSensor()">Cancel</button>
+                </div>
+            </div>
+
+            <!-- Manual update -->
+            <div style="padding-top: 1.5rem; border-top: 1px solid #e2e8f0;">
+                <h4 style="margin-bottom: 0.75rem;">Manual Update by Slot ID</h4>
+                <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px; align-items: end;">
+                    <div class="form-group" style="margin: 0;">
+                        <label class="form-label">Slot ID</label>
+                        <input type="number" class="form-input" id="manualSlotId" placeholder="e.g. 5">
+                    </div>
+                    <div class="form-group" style="margin: 0;">
+                        <label class="form-label">Status</label>
+                        <select class="form-input" id="manualSensorStatus">
+                            <option value="empty">Empty</option>
+                            <option value="occupied">Occupied</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary" onclick="manualSensorUpdate()" style="margin-bottom: 0;">Send</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <style>
+        .slot-tile {
+            padding: 8px 4px;
+            border-radius: 6px;
+            text-align: center;
+            cursor: pointer;
+            border: 1.5px solid transparent;
+            transition: all 0.15s;
+            font-size: 12px;
+        }
+        .slot-tile.free {
+            background: #dcfce7;
+            border-color: #86efac;
+            color: #15803d;
+        }
+        .slot-tile.occupied {
+            background: #fee2e2;
+            border-color: #fca5a5;
+            color: #dc2626;
+        }
+        .slot-tile.selected {
+            outline: 2px solid #3b82f6;
+            outline-offset: 1px;
+        }
+        .slot-tile:hover {
+            opacity: 0.8;
+            transform: scale(1.04);
+        }
+        .slot-loc { font-weight: 600; font-size: 13px; }
+        .slot-type { font-size: 10px; opacity: 0.75; margin-top: 2px; }
+    </style>
+        // API Base URL
+        const API_BASE = 'http://localhost:8000';
+
+        // Current guard state
+        let currentGuardId = null;
+
+        // DOM Elements
+        const loginScreen = document.getElementById('loginScreen');
+        const dashboard = document.getElementById('dashboard');
+        const loginForm = document.getElementById('loginForm');
+
+        // Check if already logged in
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedGuard = localStorage.getItem('guardId');
+            if (savedGuard) {
+                currentGuardId = savedGuard;
+                showDashboard();
+            }
+        });
+
+        // Login form submission
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const guardId = document.getElementById('guardId').value.trim();
+            const password = document.getElementById('password').value;
+
+            if (password !== 'guard123') {
+                document.getElementById('loginAlert').innerHTML = `
+                    <div class="alert alert-error">Invalid credentials</div>
+                `;
+                return;
+            }
+
+            currentGuardId = guardId;
+            localStorage.setItem('guardId', guardId);
+            showDashboard();
+        });
+
+        // Show dashboard
+        function showDashboard() {
+            loginScreen.classList.add('hidden');
+            dashboard.classList.remove('hidden');
+            document.getElementById('displayGuardId').textContent = currentGuardId;
+
+            loadApprovedRequests();
+            loadActiveVisitors();
+        }
+
+        // Logout
+        function logout() {
+            currentGuardId = null;
+            localStorage.removeItem('guardId');
+            loginScreen.classList.remove('hidden');
+            dashboard.classList.add('hidden');
+        }
+
+        // Tab switching
+        function switchTab(tabName) {
+            document.getElementById('entryTab').classList.add('hidden');
+            document.getElementById('exitTab').classList.add('hidden');
+            document.getElementById('ocrTab').classList.add('hidden');
+            document.getElementById('sensorTab').classList.add('hidden');
+
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+
+            document.getElementById(tabName + 'Tab').classList.remove('hidden');
+            event.target.closest('.tab').classList.add('active');
+
+            if (tabName === 'entry') loadApprovedRequests();
+            if (tabName === 'exit') loadActiveVisitors();
+            if (tabName === 'sensor') loadSlotGrid();
+        }
+
+        // Load approved requests
+        async function loadApprovedRequests() {
+            const tableBody = document.getElementById('approvedRequestsTable');
+
+            try {
+                const response = await fetch(`${API_BASE}/requests`);
+                const requests = await response.json();
+
+                const approved = requests.filter(r => r.status === 'approved' && !r.verified);
+
+                if (approved.length === 0) {
+                    tableBody.innerHTML = `
+                        <tr>
+                            <td colspan="5" class="empty-state">
+                                <p>No pending entries</p>
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                tableBody.innerHTML = approved.map(r => `
+                    <tr>
+                        <td>#${r.id}</td>
+                        <td>${r.visitor_name}</td>
+                        <td>${r.flat_number}</td>
+                        <td>${r.vehicle_number || '-'}</td>
+                        <td><span class="badge badge-approved">Approved</span></td>
+                    </tr>
+                `).join('');
+
+            } catch (error) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="empty-state">
+                            <p>Error loading data</p>
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        // Load active visitors
+        async function loadActiveVisitors() {
+            const tableBody = document.getElementById('activeVisitorsTable');
+
+            try {
+                const response = await fetch(`${API_BASE}/requests`);
+                const requests = await response.json();
+
+                const active = requests.filter(r => r.verified && !r.exit_time);
+
+                if (active.length === 0) {
+                    tableBody.innerHTML = `
+                        <tr>
+                            <td colspan="5" class="empty-state">
+                                <p>No active visitors</p>
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                tableBody.innerHTML = active.map(r => `
+                    <tr>
+                        <td>#${r.id}</td>
+                        <td>${r.visitor_name}</td>
+                        <td>${r.flat_number}</td>
+                        <td>${r.assigned_slot || '-'}</td>
+                        <td>${r.entry_time ? new Date(r.entry_time).toLocaleString() : '-'}</td>
+                    </tr>
+                `).join('');
+
+            } catch (error) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="empty-state">
+                            <p>Error loading data</p>
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        // Verify entry
+        async function verifyEntry() {
+            const requestId = document.getElementById('entryRequestId').value;
+
+            if (!requestId) {
+                showAlert('entryAlert', 'Please enter a request ID');
+                return;
+            }
+
+            try {
+                const response = await fetch(
+                    `${API_BASE}/verify-entry?request_id=${requestId}`,
+                    { method: 'POST' }
+                );
+
+                const data = await response.json();
+
+                if (data.slot) {
+                    document.getElementById('entryResult').classList.remove('hidden');
+                    document.getElementById('assignedSlot').textContent = data.slot;
+                    document.getElementById('entryTime').textContent = new Date().toLocaleString();
+                    showAlert('entryAlert', 'Entry verified successfully!', 'success');
+                    loadApprovedRequests();
+                    loadActiveVisitors();
+                } else {
+                    showAlert('entryAlert', data.message || 'Failed to verify entry');
+                }
+            } catch (error) {
+                showAlert('entryAlert', 'Error verifying entry');
+            }
+        }
+
+        // Process exit
+        async function processExit() {
+            const requestId = document.getElementById('exitRequestId').value;
+
+            if (!requestId) {
+                showAlert('exitAlert', 'Please enter a request ID');
+                return;
+            }
+
+            try {
+                const response = await fetch(
+                    `${API_BASE}/exit?request_id=${requestId}`,
+                    { method: 'POST' }
+                );
+
+                const data = await response.json();
+
+                if (data.slot_freed) {
+                    document.getElementById('exitResult').classList.remove('hidden');
+                    document.getElementById('freedSlot').textContent = data.slot_freed;
+                    document.getElementById('duration').textContent = data.duration || '-';
+                    showAlert('exitAlert', 'Exit processed successfully!', 'success');
+                    loadActiveVisitors();
+                } else {
+                    showAlert('exitAlert', data.message || 'Failed to process exit');
+                }
+            } catch (error) {
+                showAlert('exitAlert', 'Error processing exit');
+            }
+        }
+
+        // Image preview
+        document.getElementById('plateImage').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('previewImg').src = e.target.result;
+                    document.getElementById('imagePreview').style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Scan plate
+        async function scanPlate() {
+            const fileInput = document.getElementById('plateImage');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                showAlert('ocrAlert', 'Please select an image');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch(`${API_BASE}/scan-plate`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                document.getElementById('ocrResult').classList.remove('hidden');
+                document.getElementById('detectedPlate').textContent = data.detected_plate || '-';
+                document.getElementById('residentName').textContent = data.resident || data.message || 'Not found';
+                document.getElementById('residentFlat').textContent = data.flat || '-';
+
+                if (data.resident) {
+                    showAlert('ocrAlert', 'Plate recognized!', 'success');
+                } else {
+                    showAlert('ocrAlert', 'Plate detected but no matching resident', 'info');
+                }
+
+            } catch (error) {
+                showAlert('ocrAlert', 'Error scanning plate');
+            }
+        }
+
+        // Manual lookup
+        async function manualLookup() {
+            const carNumber = document.getElementById('manualCarNumber').value.trim();
+
+            if (!carNumber) {
+                showAlert('ocrAlert', 'Please enter a car number');
+                return;
+            }
+
+            try {
+                const response = await fetch(
+                    `${API_BASE}/identify-resident?car_number=${encodeURIComponent(carNumber)}`
+                );
+
+                const data = await response.json();
+
+                document.getElementById('lookupResult').classList.remove('hidden');
+
+                if (data.name) {
+                    document.getElementById('lookupName').textContent = data.name;
+                    document.getElementById('lookupFlat').textContent = data.flat_number;
+                    document.getElementById('lookupCar').textContent = data.car_number;
+                    document.getElementById('lookupSlot').textContent = data.slot || '-';
+                    showAlert('ocrAlert', 'Resident found!', 'success');
+                } else {
+                    document.getElementById('lookupName').textContent = '-';
+                    document.getElementById('lookupFlat').textContent = '-';
+                    document.getElementById('lookupCar').textContent = carNumber;
+                    document.getElementById('lookupSlot').textContent = '-';
+                    showAlert('ocrAlert', data.message || 'Resident not found', 'error');
+                }
+
+            } catch (error) {
+                showAlert('ocrAlert', 'Error looking up resident');
+            }
+        }
+
+        // ---- SENSOR UPDATE ----
+        let selectedSensorSlotId = null;
+        let allSlots = [];
+
+        async function loadSlotGrid() {
+            const grid = document.getElementById('slotGrid');
+            grid.innerHTML = '<p style="color:#94a3b8;font-size:0.875rem;">Loading...</p>';
+            try {
+                const response = await fetch(`${API_BASE}/slots`);
+                allSlots = await response.json();
+                renderSlotGrid();
+            } catch (e) {
+                grid.innerHTML = '<p style="color:#ef4444;font-size:0.875rem;">Could not load slots</p>';
+            }
+        }
+
+        function renderSlotGrid() {
+            const grid = document.getElementById('slotGrid');
+            grid.innerHTML = allSlots.map(s => `
+                <div class="slot-tile ${s.status} ${selectedSensorSlotId === s.id ? 'selected' : ''}"
+                     id="tile-${s.id}" onclick="selectSensorSlot(${s.id})">
+                    <div class="slot-loc">${s.location}</div>
+                    <div class="slot-type">${s.slot_type}</div>
+                </div>
+            `).join('');
+        }
+
+        function selectSensorSlot(id) {
+            selectedSensorSlotId = id;
+            const slot = allSlots.find(s => s.id === id);
+            document.getElementById('selectedSlotLabel').textContent = `${slot.location} (${slot.slot_type}) — currently ${slot.status}`;
+            document.getElementById('sensorStatus').value = slot.status === 'occupied' ? 'occupied' : 'empty';
+            document.getElementById('sensorForm').style.display = 'block';
+            renderSlotGrid();
+        }
+
+        function cancelSensor() {
+            selectedSensorSlotId = null;
+            document.getElementById('sensorForm').style.display = 'none';
+            renderSlotGrid();
+        }
+
+        async function updateSensor() {
+            const status = document.getElementById('sensorStatus').value;
+            if (!selectedSensorSlotId) return;
+            try {
+                const response = await fetch(`${API_BASE}/update-sensor?slot_id=${selectedSensorSlotId}&status=${status}`, { method: 'POST' });
+                const data = await response.json();
+                showAlert('sensorAlert', data.message || 'Updated', 'success');
+                cancelSensor();
+                loadSlotGrid();
+            } catch (e) {
+                showAlert('sensorAlert', 'Error updating sensor');
+            }
+        }
+
+        async function manualSensorUpdate() {
+            const slotId = document.getElementById('manualSlotId').value;
+            const status = document.getElementById('manualSensorStatus').value;
+            if (!slotId) { showAlert('sensorAlert', 'Enter a slot ID'); return; }
+            try {
+                const response = await fetch(`${API_BASE}/update-sensor?slot_id=${slotId}&status=${status}`, { method: 'POST' });
+                const data = await response.json();
+                showAlert('sensorAlert', data.message || 'Updated', 'success');
+                loadSlotGrid();
+            } catch (e) {
+                showAlert('sensorAlert', 'Error updating sensor');
+            }
+        }
+
+        // Show alert
+        function showAlert(containerId, message, type = 'error') {
+            const container = document.getElementById(containerId);
+            container.innerHTML = `
+                <div class="alert alert-${type === 'success' ? 'success' : type === 'info' ? 'info' : 'error'}">
+                    ${message}
+                </div>
+            `;
+            setTimeout(() => {
+                container.innerHTML = '';
+            }, 4000);
+        }
+    </script>
+</body>
+</html>

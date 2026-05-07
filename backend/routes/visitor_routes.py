@@ -19,7 +19,8 @@ def request_visit(visitor_name: str, phone: str, flat_number: str, db: Session =
     request = VisitorRequest(
         visitor_name=visitor_name,
         phone=phone,
-        flat_number=flat_number
+        flat_number=flat_number,
+        status="pending"
     )
     db.add(request)
     db.commit()
@@ -34,11 +35,16 @@ def get_requests(db: Session = Depends(get_db)):
 
 # ---------------- APPROVE REQUEST ----------------
 @router.post("/approve-request")
-def approve_request(request_id: int, db: Session = Depends(get_db)):
+def approve_request(request_id: int, resident_flat: str, db: Session = Depends(get_db)):
+
     request = db.query(VisitorRequest).filter(VisitorRequest.id == request_id).first()
 
     if not request:
         return {"message": "Request not found"}
+
+    # 🔥 Only correct resident can approve
+    if request.flat_number != resident_flat:
+        return {"message": "Unauthorized: Wrong resident"}
 
     request.status = "approved"
     db.commit()
@@ -49,6 +55,7 @@ def approve_request(request_id: int, db: Session = Depends(get_db)):
 # ---------------- REJECT REQUEST ----------------
 @router.post("/reject-request")
 def reject_request(request_id: int, db: Session = Depends(get_db)):
+
     request = db.query(VisitorRequest).filter(VisitorRequest.id == request_id).first()
 
     if not request:
@@ -63,6 +70,7 @@ def reject_request(request_id: int, db: Session = Depends(get_db)):
 # ---------------- ADD VEHICLE ----------------
 @router.post("/add-vehicle")
 def add_vehicle(request_id: int, car_brand: str, car_model: str, vehicle_number: str, db: Session = Depends(get_db)):
+
     request = db.query(VisitorRequest).filter(VisitorRequest.id == request_id).first()
 
     if not request:
@@ -108,10 +116,11 @@ def verify_entry(request_id: int, db: Session = Depends(get_db)):
     # 1. Own slot
     slot = db.query(Slot).filter(
         Slot.owner_flat == request.flat_number,
-        Slot.status == "free"
+        Slot.status == "free",
+        Slot.sensor_status == "empty"
     ).first()
 
-    # 2. ML + IoT
+    # 2. ML + IoT logic
     if not slot:
         residents = db.query(Resident).all()
 
@@ -127,21 +136,21 @@ def verify_entry(request_id: int, db: Session = Depends(get_db)):
                     slot = temp
                     break
 
-    # 3. Visitor
+    # 3. Visitor slot
     if not slot:
         slot = db.query(Slot).filter(
             Slot.status == "free",
             Slot.slot_type == "visitor"
         ).first()
 
-    # 4. General
+    # 4. General slot
     if not slot:
         slot = db.query(Slot).filter(
             Slot.status == "free",
             Slot.slot_type == "general"
         ).first()
 
-    # 5. Outside
+    # 5. Outside slot
     if not slot:
         slot = db.query(Slot).filter(
             Slot.status == "free",
@@ -151,7 +160,7 @@ def verify_entry(request_id: int, db: Session = Depends(get_db)):
     if not slot:
         return {"message": "No slots available"}
 
-    # Assign
+    # Assign slot
     slot.status = "occupied"
     slot.sensor_status = "occupied"
 
@@ -201,7 +210,7 @@ def exit_vehicle(request_id: int, db: Session = Depends(get_db)):
     }
 
 
-# ---------------- DL NUMBER PLATE ----------------
+# ---------------- OCR PLATE ----------------
 @router.post("/scan-plate")
 async def scan_plate(file: UploadFile = File(...), db: Session = Depends(get_db)):
 
@@ -239,12 +248,16 @@ async def scan_plate(file: UploadFile = File(...), db: Session = Depends(get_db)
 @router.get("/identify-resident")
 def identify_resident(car_number: str, db: Session = Depends(get_db)):
 
-    resident = db.query(Resident).filter(Resident.car_number == car_number).first()
+    resident = db.query(Resident).filter(
+        Resident.car_number == car_number
+    ).first()
 
     if not resident:
         return {"message": "Resident not found"}
 
-    slot = db.query(Slot).filter(Slot.owner_flat == resident.flat_number).first()
+    slot = db.query(Slot).filter(
+        Slot.owner_flat == resident.flat_number
+    ).first()
 
     return {
         "name": resident.name,
@@ -254,7 +267,7 @@ def identify_resident(car_number: str, db: Session = Depends(get_db)):
     }
 
 
-# ---------------- IOT ----------------
+# ---------------- SENSOR UPDATE ----------------
 @router.post("/update-sensor")
 def update_sensor(slot_id: int, status: str, db: Session = Depends(get_db)):
 
@@ -269,3 +282,4 @@ def update_sensor(slot_id: int, status: str, db: Session = Depends(get_db)):
     db.commit()
 
     return {"message": "Sensor updated"}
+

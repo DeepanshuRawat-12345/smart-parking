@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visitor Request | Smart Parking System</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="visitor-container">
+        <div class="visitor-card">
+            <!-- Header -->
+            <div class="visitor-header">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <h1>Request a Visit</h1>
+                <p>Fill out the form to request parking access</p>
+            </div>
+
+            <!-- Form -->
+            <form class="visitor-form" id="visitorForm">
+                <!-- Alert Container -->
+                <div id="alertContainer"></div>
+
+                <div class="form-group">
+                    <label class="form-label" for="visitorName">Your Name</label>
+                    <input type="text" class="form-input" id="visitorName" placeholder="Enter your full name" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="phone">Phone Number</label>
+                    <input type="tel" class="form-input" id="phone" placeholder="Enter your phone number" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="flatNumber">Flat Number (You are visiting)</label>
+                    <input type="text" class="form-input" id="flatNumber" placeholder="e.g., 101, 1907" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="vehicleNumber">Vehicle Number</label>
+                    <input type="text" class="form-input" id="vehicleNumber" placeholder="e.g., DL01AB1234" required style="text-transform: uppercase;">
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%;" id="submitBtn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                    </svg>
+                    <span>Submit Request</span>
+                </button>
+            </form>
+
+            <!-- Success State -->
+            <div class="visitor-form hidden" id="successState">
+                <div style="text-align: center; padding: 2rem 0;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" fill="none" viewBox="0 0 24 24" stroke="#22c55e" style="margin-bottom: 1rem;">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <h2 style="color: #22c55e; margin-bottom: 0.5rem;">Request Submitted!</h2>
+                    <p style="color: #64748b; margin-bottom: 1.5rem;">Your visit request has been sent to the resident. You will be notified once it's approved.</p>
+                    <button class="btn btn-outline" onclick="resetForm()">Submit Another Request</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // API Base URL - Change this to your backend URL
+        const API_BASE = 'http://localhost:8000';
+
+        // DOM Elements
+        const form = document.getElementById('visitorForm');
+        const alertContainer = document.getElementById('alertContainer');
+        const successState = document.getElementById('successState');
+        const submitBtn = document.getElementById('submitBtn');
+
+        // Show alert
+        function showAlert(message, type = 'error') {
+            alertContainer.innerHTML = `
+                <div class="alert alert-${type}">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        ${type === 'success' 
+                            ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />'
+                            : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />'}
+                    </svg>
+                    <span>${message}</span>
+                </div>
+            `;
+        }
+
+        // Clear alert
+        function clearAlert() {
+            alertContainer.innerHTML = '';
+        }
+
+        // Form submission
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            clearAlert();
+
+            const visitorName = document.getElementById('visitorName').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const flatNumber = document.getElementById('flatNumber').value.trim();
+            const vehicleNumber = document.getElementById('vehicleNumber').value.trim().toUpperCase();
+
+            // Validation
+            if (!visitorName || !phone || !flatNumber || !vehicleNumber) {
+                showAlert('Please fill in all fields including vehicle number');
+                return;
+            }
+
+            // Show loading state
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="loading"></span> Submitting...';
+
+            try {
+                // API Call using query parameters
+                const response = await fetch(
+                    `${API_BASE}/request-visit?visitor_name=${encodeURIComponent(visitorName)}&phone=${encodeURIComponent(phone)}&flat_number=${encodeURIComponent(flatNumber)}&vehicle_number=${encodeURIComponent(vehicleNumber)}`,
+                    { method: 'POST' }
+                );
+
+                const data = await response.json();
+
+                if (response.ok && data.status === 'pending') {
+                    // Show success state
+                    form.classList.add('hidden');
+                    successState.classList.remove('hidden');
+                } else {
+                    showAlert(data.message || 'Something went wrong. Please try again.');
+                }
+            } catch (error) {
+                showAlert('Unable to connect to server. Please try again later.');
+                console.error('Error:', error);
+            } finally {
+                // Reset button state
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                    </svg>
+                    <span>Submit Request</span>
+                `;
+            }
+        });
+
+        // Reset form
+        function resetForm() {
+            form.reset();
+            form.classList.remove('hidden');
+            successState.classList.add('hidden');
+            clearAlert();
+        }
+    </script>
+</body>
+</html>

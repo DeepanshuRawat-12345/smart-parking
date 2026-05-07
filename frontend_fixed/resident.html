@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resident Dashboard | Smart Parking System</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Login Screen -->
+    <div class="login-container" id="loginScreen">
+        <div class="login-card">
+            <div class="login-header">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+                <h1>Resident Login</h1>
+                <p>Enter your flat number to continue</p>
+            </div>
+
+            <form id="loginForm">
+                <div id="loginAlert"></div>
+
+                <div class="form-group">
+                    <label class="form-label" for="flatNumber">Flat Number</label>
+                    <input type="text" class="form-input" id="flatNumber" placeholder="e.g., 101, 1907" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="password">Password</label>
+                    <input type="password" class="form-input" id="password" placeholder="Enter password" value="resident123" required>
+                    <small style="color: #94a3b8; font-size: 0.75rem;">Default: resident123</small>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%;" id="loginBtn">
+                    <span>Login</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Dashboard -->
+    <div class="container hidden" id="dashboard">
+        <!-- Header -->
+        <div class="dashboard-header">
+            <div class="user-info">
+                <div class="user-avatar">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                </div>
+                <div>
+                    <div class="user-name" id="userName">Resident</div>
+                    <div class="user-role">Flat: <span id="userFlat">-</span></div>
+                </div>
+            </div>
+            <button class="btn btn-outline" onclick="logout()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                <span>Logout</span>
+            </button>
+        </div>
+
+        <!-- Stats -->
+        <div class="grid grid-3" style="margin-bottom: 2rem;">
+            <div class="stat-card">
+                <div class="stat-card-icon blue">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                </div>
+                <div class="stat-value" id="mySlot">-</div>
+                <div class="stat-label">My Parking Slot</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-card-icon green">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <div class="stat-value" id="slotStatus">-</div>
+                <div class="stat-label">Slot Status</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-card-icon yellow">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <div class="stat-value" id="pendingCount">0</div>
+                <div class="stat-label">Pending Requests</div>
+            </div>
+        </div>
+
+        <!-- Vehicle Info Card -->
+        <div class="card" style="margin-bottom: 2rem;">
+            <div class="card-header">
+                <h3 class="card-title">My Vehicle Information</h3>
+            </div>
+            <div class="grid grid-3">
+                <div>
+                    <div class="result-label">Car Number</div>
+                    <div class="result-value" id="carNumber">-</div>
+                </div>
+                <div>
+                    <div class="result-label">Car Brand</div>
+                    <div class="result-value" id="carBrand">-</div>
+                </div>
+                <div>
+                    <div class="result-label">Car Model</div>
+                    <div class="result-value" id="carModel">-</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Visitor Requests -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Visitor Requests</h3>
+                <button class="btn btn-sm btn-outline" onclick="loadRequests()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    Refresh
+                </button>
+            </div>
+
+            <div id="alertContainer"></div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Visitor Name</th>
+                            <th>Phone</th>
+                            <th>Vehicle</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="requestsTable">
+                        <tr>
+                            <td colspan="6" class="empty-state">
+                                <p>Loading requests...</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // API Base URL
+        const API_BASE = 'http://localhost:8000';
+
+        // Current user state
+        let currentFlat = null;
+
+        // DOM Elements
+        const loginScreen = document.getElementById('loginScreen');
+        const dashboard = document.getElementById('dashboard');
+        const loginForm = document.getElementById('loginForm');
+
+        // Check if already logged in
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedFlat = localStorage.getItem('residentFlat');
+            if (savedFlat) {
+                currentFlat = savedFlat;
+                showDashboard();
+            }
+        });
+
+        // Login form submission
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const flatNumber = document.getElementById('flatNumber').value.trim();
+            const password = document.getElementById('password').value;
+
+            // Simple validation (password check - static for now)
+            if (password !== 'resident123') {
+                document.getElementById('loginAlert').innerHTML = `
+                    <div class="alert alert-error">Invalid credentials</div>
+                `;
+                return;
+            }
+
+            currentFlat = flatNumber;
+            localStorage.setItem('residentFlat', flatNumber);
+            showDashboard();
+        });
+
+        // Show dashboard
+        function showDashboard() {
+            loginScreen.classList.add('hidden');
+            dashboard.classList.remove('hidden');
+            document.getElementById('userFlat').textContent = currentFlat;
+
+            // Load data
+            loadResidentInfo();
+            loadRequests();
+            loadSlotInfo();
+        }
+
+        // Logout
+        function logout() {
+            currentFlat = null;
+            localStorage.removeItem('residentFlat');
+            loginScreen.classList.remove('hidden');
+            dashboard.classList.add('hidden');
+            document.getElementById('loginAlert').innerHTML = '';
+        }
+
+        // Load resident info
+        async function loadResidentInfo() {
+            try {
+                const response = await fetch(`${API_BASE}/admin/residents`);
+                const residents = await response.json();
+
+                const resident = residents.find(r => r.flat_number === currentFlat);
+                if (resident) {
+                    document.getElementById('userName').textContent = resident.name || 'Resident';
+                    document.getElementById('carNumber').textContent = resident.car_number || '-';
+                    document.getElementById('carBrand').textContent = resident.car_brand || '-';
+                    document.getElementById('carModel').textContent = resident.car_model || '-';
+                }
+            } catch (error) {
+                console.error('Error loading resident info:', error);
+            }
+        }
+
+        // Load slot info
+        async function loadSlotInfo() {
+            try {
+                const response = await fetch(`${API_BASE}/parking-status`);
+                const slots = await response.json();
+
+                const mySlot = slots.find(s => s.owner_flat === currentFlat);
+                if (mySlot) {
+                    document.getElementById('mySlot').textContent = mySlot.location;
+                    document.getElementById('slotStatus').textContent = mySlot.status === 'free' ? 'Available' : 'Occupied';
+                    document.getElementById('slotStatus').style.color = mySlot.status === 'free' ? '#22c55e' : '#ef4444';
+                } else {
+                    document.getElementById('mySlot').textContent = 'None';
+                    document.getElementById('slotStatus').textContent = 'Not Assigned';
+                }
+            } catch (error) {
+                console.error('Error loading slot info:', error);
+            }
+        }
+
+        // Load visitor requests
+        async function loadRequests() {
+            const tableBody = document.getElementById('requestsTable');
+
+            try {
+                const response = await fetch(`${API_BASE}/requests`);
+                const requests = await response.json();
+
+                // Filter requests for current flat
+                const myRequests = requests.filter(r => r.flat_number === currentFlat);
+
+                // Update pending count
+                const pendingCount = myRequests.filter(r => r.status === 'pending').length;
+                document.getElementById('pendingCount').textContent = pendingCount;
+
+                if (myRequests.length === 0) {
+                    tableBody.innerHTML = `
+                        <tr>
+                            <td colspan="6">
+                                <div class="empty-state">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                                    </svg>
+                                    <p>No visitor requests yet</p>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                tableBody.innerHTML = myRequests.map(request => `
+                    <tr>
+                        <td>#${request.id}</td>
+                        <td>${request.visitor_name}</td>
+                        <td>${request.phone}</td>
+                        <td>${request.vehicle_number || '-'}</td>
+                        <td><span class="badge badge-${request.status}">${request.status}</span></td>
+                        <td>
+                            <div class="action-buttons">
+                                ${request.status === 'pending' ? `
+                                    <button class="btn btn-sm btn-success" onclick="approveRequest(${request.id})">
+                                        Approve
+                                    </button>
+                                    <button class="btn btn-sm btn-danger" onclick="rejectRequest(${request.id})">
+                                        Reject
+                                    </button>
+                                ` : '-'}
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+
+            } catch (error) {
+                console.error('Error loading requests:', error);
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="6">
+                            <div class="empty-state">
+                                <p>Error loading requests. Please try again.</p>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        // Approve request
+        async function approveRequest(requestId) {
+            try {
+                const response = await fetch(
+                    `${API_BASE}/approve-request?request_id=${requestId}&resident_flat=${encodeURIComponent(currentFlat)}`,
+                    { method: 'POST' }
+                );
+
+                const data = await response.json();
+
+                // FastAPI returns 200 even for business logic errors, so check the message
+                const failed = !response.ok || (data.message && data.message.toLowerCase().includes('unauthorized') || data.message && data.message.toLowerCase().includes('not found'));
+                if (failed) {
+                    showAlert(data.message || 'Failed to approve request');
+                } else {
+                    showAlert('Request approved successfully!', 'success');
+                    loadRequests();
+                }
+            } catch (error) {
+                showAlert('Cannot reach server. Is the backend running?');
+                console.error('Error:', error);
+            }
+        }
+
+        // Reject request
+        async function rejectRequest(requestId) {
+            if (!confirm('Reject this visitor request?')) return;
+            try {
+                const response = await fetch(
+                    `${API_BASE}/reject-request?request_id=${requestId}`,
+                    { method: 'POST' }
+                );
+
+                const data = await response.json();
+
+                const failed = !response.ok || (data.message && data.message.toLowerCase().includes('not found'));
+                if (failed) {
+                    showAlert(data.message || 'Failed to reject request');
+                } else {
+                    showAlert('Request rejected', 'info');
+                    loadRequests();
+                }
+            } catch (error) {
+                showAlert('Cannot reach server. Is the backend running?');
+                console.error('Error:', error);
+            }
+        }
+
+        // Show alert
+        function showAlert(message, type = 'error') {
+            const alertContainer = document.getElementById('alertContainer');
+            alertContainer.innerHTML = `
+                <div class="alert alert-${type === 'success' ? 'success' : type === 'info' ? 'info' : 'error'}">
+                    ${message}
+                </div>
+            `;
+            setTimeout(() => {
+                alertContainer.innerHTML = '';
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

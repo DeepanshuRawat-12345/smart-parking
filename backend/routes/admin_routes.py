@@ -164,11 +164,12 @@ def reset_system(db: Session = Depends(get_db)):
 @router.post("/seed-data")
 def seed_data(db: Session = Depends(get_db)):
 
-    from models import Resident, Slot, Guard
+    from models import Resident, Slot, Guard, VisitorRequest
     import random
+    from datetime import datetime
 
-    # ---------- PHONE GENERATOR ----------
     used_numbers = set()
+    used_cars = set()
 
     def generate_phone():
         while True:
@@ -177,84 +178,44 @@ def seed_data(db: Session = Depends(get_db)):
                 used_numbers.add(number)
                 return number
 
-    # ---------- CAR NUMBER GENERATOR ----------
-    used_cars = set()
-
     def generate_car_number():
         states = ["UP", "DL", "HR", "PB", "RJ"]
-
         while True:
-            state = random.choice(states)
-            district = str(random.randint(10, 99))
-            letters = "".join(random.choices("ABCDEFGHIJKLMNOPQRSTUVWXYZ", k=2))
-            numbers = str(random.randint(1000, 9999))
+            car = f"{random.choice(states)}{random.randint(10,99)}" \
+                  f"{''.join(random.choices('ABCDEFGHIJKLMNOPQRSTUVWXYZ', k=2))}" \
+                  f"{random.randint(1000,9999)}"
+            if car not in used_cars:
+                used_cars.add(car)
+                return car
 
-            car_number = f"{state}{district}{letters}{numbers}"
-
-            if car_number not in used_cars:
-                used_cars.add(car_number)
-                return car_number
-
-    # ---------- CLEAR OLD DATA ----------
+    # ---------- CLEAR ----------
+    db.query(VisitorRequest).delete()
     db.query(Resident).delete()
     db.query(Guard).delete()
     db.query(Slot).delete()
 
-    # ---------- REALISTIC NAMES ----------
-    names = [
-        "Rahul Sharma", "Aman Verma", "Priya Mehta", "Karan Singh",
-        "Neha Gupta", "Arjun Kapoor", "Simran Kaur", "Rohit Jain",
-        "Anjali Sharma", "Vikram Malhotra", "Sneha Kapoor", "Raj Patel",
-        "Pooja Singh", "Yash Agarwal", "Nikita Verma", "Aditya Sharma",
-        "Meera Iyer", "Kabir Khan", "Ritika Jain", "Manish Gupta",
-        "Aditi Singh", "Sahil Verma", "Tanya Kapoor", "Deepak Yadav",
-        "Rohini Sharma", "Varun Mehta", "Kriti Malhotra", "Ankit Jain",
-        "Divya Sharma", "Harsh Patel", "Ishita Verma", "Kunal Singh",
-        "Payal Gupta", "Nitin Kapoor", "Sanya Mehta", "Mohit Sharma"
-    ]
-
-    # ---------- BEHAVIOR PATTERNS ----------
-    patterns = [
-        ("08:00", "20:00"),
-        ("09:00", "18:00"),
-        ("07:30", "19:30"),
-        ("10:00", "22:00"),
-        ("06:00", "17:00"),
-        ("22:00", "06:00")  # night shift
-    ]
-
-    # ---------- CAR DATA ----------
-    car_brands = ["Honda", "Hyundai", "Maruti", "Toyota", "Tata", "Kia"]
-    car_models = ["City", "i20", "Swift", "Fortuner", "Nexon", "Seltos"]
-
-    # ---------- CREATE RESIDENTS ----------
+    # ---------- RESIDENTS ----------
     residents = []
     flat_start = 101
 
     for i in range(36):
-        flat_number = str(flat_start + i)
-
-        exit_time, entry_time = patterns[i % len(patterns)]
-
         res = Resident(
-            name=names[i],
-            flat_number=flat_number,
+            name=f"Resident {i+1}",
+            flat_number=str(flat_start + i),
             phone=generate_phone(),
-            avg_exit_time=exit_time,
-            avg_entry_time=entry_time,
+            avg_exit_time="09:00",
+            avg_entry_time="18:00",
             car_number=generate_car_number(),
-            car_brand=random.choice(car_brands),
-            car_model=random.choice(car_models)
+            car_brand="Honda",
+            car_model="City"
         )
-
         residents.append(res)
 
     db.add_all(residents)
 
-    # ---------- CREATE SLOTS ----------
+    # ---------- SLOTS ----------
     slots = []
 
-    # Reserved (36)
     for i in range(36):
         slots.append(
             Slot(
@@ -266,40 +227,45 @@ def seed_data(db: Session = Depends(get_db)):
             )
         )
 
-    # Handicapped (3)
-    for i in range(37, 40):
-        slots.append(
-            Slot(location=f"A{i}", slot_type="handicapped", status="free")
-        )
-
-    # Visitor (5)
-    for i in range(40, 45):
-        slots.append(
-            Slot(location=f"A{i}", slot_type="visitor", status="free")
-        )
-
-    # General (5)
-    for i in range(45, 50):
-        slots.append(
-            Slot(location=f"A{i}", slot_type="general", status="free")
-        )
-
-    # Outside (6)
-    for i in range(50, 56):
-        slots.append(
-            Slot(location=f"A{i}", slot_type="outside", status="free")
-        )
+    for i in range(36, 45):
+        slots.append(Slot(location=f"A{i+1}", slot_type="visitor", status="free"))
 
     db.add_all(slots)
+    db.commit()
+
+    # ---------- SIMULATE PARKED ----------
+    sample = random.sample(residents, 10)
+
+    for res in sample:
+        slot = db.query(Slot).filter(Slot.owner_flat == res.flat_number).first()
+
+        if slot:
+            slot.status = "occupied"
+            slot.sensor_status = "occupied"
+
+            vr = VisitorRequest(
+                visitor_name="Resident Parking",
+                phone=res.phone,
+                flat_number=res.flat_number,
+                status="approved",
+                vehicle_number=res.car_number,
+                car_brand=res.car_brand,
+                car_model=res.car_model,
+                assigned_slot=slot.id,
+                entry_time=datetime.now(),
+                verified=True
+            )
+
+            db.add(vr)
 
     # ---------- GUARDS ----------
     guards = [
-        Guard(name="Ramesh Yadav", phone=generate_phone()),
-        Guard(name="Suresh Kumar", phone=generate_phone())
+        Guard(name="Guard 1", phone=generate_phone()),
+        Guard(name="Guard 2", phone=generate_phone())
     ]
 
     db.add_all(guards)
 
     db.commit()
 
-    return {"message": "Full realistic building data loaded successfully"}
+    return {"message": "System seeded with realistic data"}
