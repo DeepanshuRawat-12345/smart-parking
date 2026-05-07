@@ -1,31 +1,11 @@
-# Node
-node_modules/
-.next/
-out/
-dist/
-
-# Logs
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Python
 __pycache__/
 *.pyc
 *.pyo
-*.pyd
+*.db
 .env
-
-# Database
-parking.db
-
-# OS files
+.venv
+venv/
+*.egg-info/
+dist/
+build/
 .DS_Store
-Thumbs.db
-
-# IDE
-.vscode/
-.idea/
-
-# Misc
-*.log

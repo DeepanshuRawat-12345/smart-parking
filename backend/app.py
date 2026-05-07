@@ -2,13 +2,12 @@ from fastapi import FastAPI, Depends, File, UploadFile
 from sqlalchemy.orm import Session
 from fastapi.middleware.cors import CORSMiddleware
 
-# OCR imports
-from paddleocr import PaddleOCR
+# OCR disabled for hosted deployment (too large for free tier)
+# from paddleocr import PaddleOCR
 import os
 import re
 
-# Initialize OCR (ONLY ONCE)
-ocr = PaddleOCR(use_angle_cls=True, lang='en')
+# ocr = PaddleOCR(use_angle_cls=True, lang='en')
 
 # Import routes
 from routes import user_routes
@@ -130,27 +129,4 @@ def seed_data():
 
 @app.post("/ocr-plate")
 async def ocr_plate(file: UploadFile = File(...)):
-    try:
-        contents = await file.read()
-
-        file_path = "temp.jpg"
-        with open(file_path, "wb") as f:
-            f.write(contents)
-
-        result = ocr.ocr(file_path)
-
-        text = ""
-        for line in result:
-            for word in line:
-                text += word[1][0] + " "
-
-        plate = text.strip().upper()
-        plate = re.sub(r'[^A-Z0-9]', '', plate)
-
-        if os.path.exists(file_path):
-            os.remove(file_path)
-
-        return {"status": "success", "plate": plate}
-
-    except Exception as e:
-        return {"status": "error", "message": str(e)}
+    return {"status": "disabled", "message": "OCR is disabled on the hosted version. Use locally for plate scanning."}
